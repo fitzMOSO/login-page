@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Github, Facebook, Linkedin, Eye, EyeOff, AlertCircle } from 'lucide-react';
-import { useAuth } from '../hooks/useAuth';
+import { useAuthContext } from '../hooks/AuthContext';
 import { LoginCredentials, SignupCredentials, FormErrors } from '../types/auth';
 
 /**
@@ -9,6 +10,7 @@ import { LoginCredentials, SignupCredentials, FormErrors } from '../types/auth';
  * Based on AsmrProg design with clean two-panel layout
  */
 const ModernLogin: React.FC = () => {
+    const navigate = useNavigate();
     const [isSignUp, setIsSignUp] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
     const [formData, setFormData] = useState<LoginCredentials & SignupCredentials>({
@@ -18,8 +20,9 @@ const ModernLogin: React.FC = () => {
     });
     const [formErrors, setFormErrors] = useState<FormErrors>({});
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [showSignupSuccess, setShowSignupSuccess] = useState(false);
 
-    const { login, signup, isLoading, error, clearError } = useAuth();
+    const { login, signup, isLoading, error, clearError } = useAuthContext();
 
     /**
      * Handles form submission
@@ -35,14 +38,27 @@ const ModernLogin: React.FC = () => {
                 const { name, ...loginData } = formData;
                 const result = await login(loginData);
                 if (result.success) {
-                    console.log('Login successful!');
+                    console.log('Login successful! Redirecting to dashboard...');
+                    // Small delay to allow SweetAlert to show
+                    setTimeout(() => {
+                        navigate('/dashboard');
+                    }, 500);
                 } else if (result.errors) {
                     setFormErrors(result.errors);
                 }
             } else {
                 const result = await signup(formData);
                 if (result.success) {
-                    console.log('Signup successful!');
+                    console.log('Signup successful! Switching to sign-in form...');
+                    // Clear form data
+                    setFormData({ name: '', email: '', password: '' });
+                    setFormErrors({});
+                    // Show success message and switch to sign-in form
+                    setShowSignupSuccess(true);
+                    setTimeout(() => {
+                        setIsSignUp(false);
+                        setShowSignupSuccess(false);
+                    }, 1000);
                 } else if (result.errors) {
                     setFormErrors(result.errors);
                 }
@@ -74,6 +90,7 @@ const ModernLogin: React.FC = () => {
         setIsSignUp(!isSignUp);
         setFormData({ name: '', email: '', password: '' });
         setFormErrors({});
+        setShowSignupSuccess(false);
         clearError();
     };
 
@@ -103,12 +120,13 @@ const ModernLogin: React.FC = () => {
         setFormData({ name: '', email: '', password: '' });
         setFormErrors({});
         setIsSignUp(false);
+        setShowSignupSuccess(false);
         clearError();
     }, [clearError]);
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 p-4">
-            <div className="relative w-full max-w-4xl h-[600px] bg-white rounded-3xl shadow-2xl overflow-hidden">
+        <div className="min-h-screen flex items-center justify-center bg-gradient-to-r from-gray-200 to-blue-200 p-4">
+            <div className={`container relative w-full max-w-4xl min-h-[480px] bg-white rounded-3xl shadow-2xl overflow-hidden ${isSignUp ? 'active' : ''}`}>
                 
                 {/* Error Message */}
                 {error && (
@@ -120,15 +138,8 @@ const ModernLogin: React.FC = () => {
                     </div>
                 )}
 
-
                 {/* Sign Up Form Container */}
-                <div
-                    className={`absolute top-0 w-1/2 h-full transition-all duration-700 ease-in-out ${
-                        isSignUp
-                            ? 'left-0 opacity-100 z-50 pointer-events-auto'
-                            : 'left-1/2 opacity-0 z-10 pointer-events-none'
-                    }`}
-                >
+                <div className="form-container sign-up">
                     <div className="flex items-center justify-center h-full px-12 py-8 bg-white">
                         <div className="w-full max-w-sm">
                             <h1 className="text-4xl font-bold text-gray-800 mb-8">Create Account</h1>
@@ -257,13 +268,7 @@ const ModernLogin: React.FC = () => {
                 </div>
 
                 {/* Sign In Form Container */}
-                <div
-                    className={`absolute top-0 w-1/2 h-full transition-all duration-700 ease-in-out ${
-                        isSignUp
-                            ? 'left-1/2 opacity-0 z-10 pointer-events-none'
-                            : 'left-0 opacity-100 z-50 pointer-events-auto'
-                    }`}
-                >
+                <div className="form-container sign-in">
                     <div className="flex items-center justify-center h-full px-12 py-8 bg-white">
                         <div className="w-full max-w-sm">
                             <h1 className="text-4xl font-bold text-gray-800 mb-8">Sign In</h1>
@@ -309,6 +314,25 @@ const ModernLogin: React.FC = () => {
                             </div>
 
                             <p className="text-sm text-gray-500 text-center mb-6">or use your email password</p>
+                            
+                            {/* Success Message for Signup */}
+                            {showSignupSuccess && (
+                                <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg">
+                                    <p className="text-xs text-green-700 text-center">
+                                        <strong>Account Created!</strong><br />
+                                        Please sign in with your credentials below.
+                                    </p>
+                                </div>
+                            )}
+                            
+                            {/* Demo Credentials Helper
+                            <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                                <p className="text-xs text-blue-700 text-center">
+                                    <strong>Demo Credentials:</strong><br />
+                                    Email: demo@example.com<br />
+                                    Password: password123
+                                </p>
+                            </div> */}
 
                             <div className="space-y-4">
                                 <div className="relative">
@@ -380,44 +404,36 @@ const ModernLogin: React.FC = () => {
                     </div>
                 </div>
 
-                {/* Overlay Panel - Sliding Animation */}
-                <div
-                    className={`absolute top-0 right-0 w-1/2 h-full overflow-hidden transition-transform duration-700 ease-in-out z-30 ${
-                        isSignUp ? '-translate-x-full' : 'translate-x-0'
-                    }`}
-                >
-                    
-                    {/* Overlay Content */}
-                    <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-indigo-600 via-indigo-500 to-purple-600 text-white px-12 rounded-tl-3xl rounded-bl-3xl">
-                        <div className="text-center max-w-md" key={isSignUp ? 'signup' : 'signin'}>
-                            
-                            {isSignUp ? (
-                                <>
-                                    <h2 className="text-5xl font-bold mb-4">Welcome Back!</h2>
-                                    <p className="text-lg mb-8 leading-relaxed opacity-95">
-                                        To keep connected with us please login with your personal info
-                                    </p>
-                                    <button
-                                        onClick={toggleMode}
-                                        className="px-12 py-3 border-2 border-white rounded-lg font-semibold hover:bg-white hover:text-indigo-600 transition-all transform hover:scale-105 uppercase tracking-wide"
-                                    >
-                                        Sign In
-                                    </button>
-                                </>
-                            ) : (
-                                <>
-                                    <h2 className="text-5xl font-bold mb-4">Hello, Friend!</h2>
-                                    <p className="text-lg mb-8 leading-relaxed opacity-95">
-                                        Register with your personal details to use all of site features
-                                    </p>
-                                    <button
-                                        onClick={toggleMode}
-                                        className="px-12 py-3 border-2 border-white rounded-lg font-semibold hover:bg-white hover:text-indigo-600 transition-all transform hover:scale-105 uppercase tracking-wide"
-                                    >
-                                        Sign Up
-                                    </button>
-                                </>
-                            )}
+                {/* Toggle Container - Sliding Panel */}
+                <div className="toggle-container">
+                    <div className="toggle bg-gradient-to-r from-indigo-500 to-indigo-700 text-white">
+                        
+                        {/* Toggle Left Panel (Sign In) */}
+                        <div className="toggle-panel toggle-left">
+                            <h2 className="text-5xl font-bold mb-4">Welcome Back!</h2>
+                            <p className="text-lg mb-8 leading-relaxed opacity-95">
+                                Enter your personal details to use all of site features
+                            </p>
+                            <button
+                                onClick={toggleMode}
+                                className="px-12 py-3 border-2 border-white bg-transparent rounded-lg font-semibold hover:bg-white hover:text-indigo-600 transition-all uppercase tracking-wide text-xs"
+                            >
+                                Sign In
+                            </button>
+                        </div>
+
+                        {/* Toggle Right Panel (Sign Up) */}
+                        <div className="toggle-panel toggle-right">
+                            <h2 className="text-5xl font-bold mb-4">Hello, Friend!</h2>
+                            <p className="text-lg mb-8 leading-relaxed opacity-95">
+                                Register with your personal details to use all of site features
+                            </p>
+                            <button
+                                onClick={toggleMode}
+                                className="px-12 py-3 border-2 border-white bg-transparent rounded-lg font-semibold hover:bg-white hover:text-indigo-600 transition-all uppercase tracking-wide text-xs"
+                            >
+                                Sign Up
+                            </button>
                         </div>
                     </div>
                 </div>
