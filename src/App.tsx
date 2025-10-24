@@ -1,11 +1,12 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { useAuth } from './hooks/useAuth';
+import { useAuthContext } from './hooks/AuthContext';
 import ModernLogin from './components/ModernLogin';
 import Dashboard from './pages/Dashboard';
 
 const App: React.FC = () => {
-    const { isAuthenticated, isLoading } = useAuth();
+    const { isAuthenticated, isLoading } = useAuthContext();
+
 
     if (isLoading) {
         return (
