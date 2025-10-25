@@ -12,9 +12,12 @@
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0"
   },
   "dependencies": {
+    "@netlify/neon": "^0.1.0",
+    "@types/bcryptjs": "^2.4.6",
     "@types/better-sqlite3": "^7.6.13",
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.4",
+    "bcryptjs": "^3.0.2",
     "better-sqlite3": "^12.4.1",
     "concurrently": "^9.2.1",
     "cors": "^2.8.5",
@@ -24,8 +27,7 @@
     "react-dom": "^18.2.0",
     "react-router-dom": "^6.20.1",
     "sqlite3": "^5.1.7",
-    "sweetalert2": "^11.26.3",
-    "tsx": "^4.20.6"
+    "sweetalert2": "^11.26.3"
   },
   "devDependencies": {
     "@types/react": "^18.3.26",
@@ -39,6 +41,7 @@
     "eslint-plugin-react-refresh": "^0.4.4",
     "postcss": "^8.4.31",
     "tailwindcss": "^3.3.5",
+    "tsx": "^4.20.6",
     "typescript": "^5.2.2",
     "vite": "^7.1.12"
   }

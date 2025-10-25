@@ -57,3 +57,4 @@ export const validateSignupForm = (credentials: SignupCredentials): FormErrors =
   
   return errors;
 };
+
